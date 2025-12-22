@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDRT Protocol | Test De-Risk Token</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --bg-white: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #515154;
+            --text-muted: #86868b;
+            --border: #d2d2d7;
+            --green: #34c759;
+            --red: #ff3b30;
+            --blue: #007aff;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --shadow: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-hover: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding: 0 24px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-mark {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 8px;
+            color: #fff;
+            letter-spacing: 0.3px;
+        }
+        .logo-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--text-primary); }
+        .connect-btn {
+            background: var(--text-primary);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .connect-btn:hover { opacity: 0.85; }
+        .connect-btn.connected {
+            background: var(--bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        /* Price Ticker */
+        .price-ticker {
+            background: var(--bg-white);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            font-size: 13px;
+        }
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ticker-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .ticker-price {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .ticker-change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .ticker-change.up { color: var(--green); }
+        .ticker-change.down { color: var(--red); }
+        .ticker-change.neutral { color: var(--text-muted); }
+
+        /* Main */
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 24px 0 56px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -2px;
+            margin-bottom: 12px;
+            line-height: 1.05;
+        }
+        .hero h1 .gradient {
+            background: linear-gradient(90deg, #007aff, #5856d6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: 19px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Section */
+        .section { margin-bottom: 24px; }
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* Tooltip */
+        .tooltip-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+        .tooltip-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--bg);
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: help;
+            margin-left: 6px;
+        }
+        .tooltip-icon:hover { color: var(--text-secondary); }
+        .tooltip-text {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 400;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 50;
+        }
+        .tooltip-wrap:hover .tooltip-text {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Cards */
+        .card-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        
+        .metric-card {
+            background: var(--bg-white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        .metric-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+        }
+        .metric-value.green { color: var(--green); }
+        .metric-value.red { color: var(--red); }
+        .metric-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Positions */
+        .positions-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .positions-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+        .positions-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .positions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .positions-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg);
+        }
+        .positions-table td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .positions-table tr:last-child td { border-bottom: none; }
+        .positions-table tr:hover { background: var(--bg); }
+        .positions-table .green { color: var(--green); font-weight: 600; }
+        .positions-table .muted { color: var(--text-muted); }
+        .positions-table .bold { font-weight: 600; }
+        .positions-empty {
+            padding: 48px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        /* Actions */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .action-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        .action-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .action-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .action-icon.blue { background: rgba(0, 122, 255, 0.1); color: var(--blue); }
+        .action-icon.gray { background: var(--bg); color: var(--text-secondary); }
+        .action-icon.green { background: rgba(52, 199, 89, 0.1); color: var(--green); }
+        .action-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .action-card > p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .mint-status {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .status-dot.active { background: var(--green); }
+        .status-dot.inactive { background: var(--red); }
+        .status-text {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .status-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+        .status-detail .label { color: var(--text-muted); }
+        .status-detail .value { color: var(--text-secondary); font-weight: 500; }
+
+        .input-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
+        .input-wrap input {
+            width: 100%;
+            padding: 14px 60px 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            background: var(--bg);
+            transition: all 0.2s;
+        }
+        .input-wrap input:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: var(--bg-white);
+        }
+        .input-wrap .suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .info-row .label { color: var(--text-muted); }
+        .info-row .value { font-weight: 500; }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+        .btn-primary {
+            background: var(--text-primary);
+            color: #fff;
+        }
+        .btn-primary:hover:not(:disabled) { opacity: 0.85; }
+        .btn-primary:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        .btn-green {
+            background: var(--green);
+            color: #fff;
+        }
+        .btn-green:hover:not(:disabled) { opacity: 0.85; }
+        .btn-green:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .claim-display {
+            background: rgba(52, 199, 89, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .claim-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .claim-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--green);
+        }
+        .claim-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        /* Reserves */
+        .reserves-box {
+            background: #1d1d1f;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 32px;
+            color: #fff;
+        }
+        .reserves-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .reserves-icon {
+            font-size: 24px;
+        }
+        .reserves-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .reserves-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .reserves-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .reserve-item {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .reserve-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .reserve-label-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .reserve-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .reserve-tip {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            cursor: help;
+            position: relative;
+        }
+        .reserve-tip-text {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+        .reserve-tip:hover .reserve-tip-text {
+            opacity: 1;
+            visibility: visible;
+        }
+        .reserve-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .reserve-link {
+            font-size: 11px;
+            color: var(--blue);
+            text-decoration: none;
+        }
+        .reserve-link:hover { text-decoration: underline; }
+        .reserves-footer {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+        .reserves-footer .check {
+            color: var(--green);
+            margin-right: 4px;
+        }
+
+        /* How it works */
+        .how-section {
+            margin-top: 48px;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .section-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .section-header p {
+            color: var(--text-secondary);
+        }
+        .how-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .how-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+        .how-step {
+            width: 32px;
+            height: 32px;
+            background: var(--bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .how-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .how-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Trust box */
+        .trust-box {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-top: 24px;
+        }
+        .trust-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .trust-icon {
+            font-size: 24px;
+        }
+        .trust-header h4 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .trust-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .trust-vaults {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .trust-vault {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .trust-vault h5 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .trust-vault p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+        }
+        .toast {
+            background: var(--text-primary);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.error { background: var(--red); }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        footer {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .footer-links {
+            margin-bottom: 12px;
+        }
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 12px;
+        }
+        footer a:hover { color: var(--text-primary); }
+
+        /* Warning box */
+        .warning-box {
+            background: rgba(255, 149, 0, 0.1);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            color: #996300;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 36px; }
+            .card-grid-4, .card-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: 1fr; }
+            .reserves-grid { grid-template-columns: 1fr; }
+            .how-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-mark">TDRT</div>
+            <span class="logo-text">TDRT Protocol</span>
+        </div>
+        <div class="header-actions">
+            <a href="#how-it-works" class="nav-link">How It Works</a>
+            <a href="https://app.uniswap.org/swap?chain=base&inputCurrency=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&outputCurrency=0x601F382DF787fe54815214B6c46739D1b94E1aC5" target="_blank" class="nav-link">Trade on Uniswap</a>
+            <button class="connect-btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+    </header>
+
+    <div class="price-ticker">
+        <div class="ticker-item">
+            <span class="ticker-label">TDRT</span>
+            <span class="ticker-price" id="drtMarketPrice">$1.00</span>
+            <span class="ticker-change neutral" id="drtChange">0.00%</span>
+        </div>
+        <div class="ticker-item">
+            <span class="ticker-label">BTC</span>
+            <span class="ticker-price" id="btcPrice">$0</span>
+            <span class="ticker-change neutral" id="btcChange">0.00%</span>
+        </div>
+    </div>
+
+    <main>
+        <section class="hero">
+            <div class="hero-badge"><span class="dot"></span> Live on Base</div>
+            <h1>Bitcoin <span class="gradient">De-Risk</span> Token</h1>
+            <p class="hero-subtitle">Earn when Bitcoin drops. Exit anytime with full liquidity.</p>
+        </section>
+
+        <section class="section">
+            <div class="section-label">Your Portfolio</div>
+            <div class="card-grid-4">
+                <div class="metric-card">
+                    <div class="metric-label">TDRT Balance <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Total TDRT tokens you own</span></span></div>
+                    <div class="metric-value" id="balanceValue">0.00</div>
+                    <div class="metric-sub">TDRT</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Value <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Balance × market price</span></span></div>
+                    <div class="metric-value" id="portfolioValue">$0.00</div>
+                    <div class="metric-sub">USD</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Avg Cost <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Average purchase price per TDRT</span></span></div>
+                    <div class="metric-value" id="costBasis">$0.00</div>
+                    <div class="metric-sub">Per TDRT</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">P&L <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Profit/Loss since purchase</span></span></div>
+                    <div class="metric-value green" id="pnlValue">$0.00</div>
+                    <div class="metric-sub" id="pnlPercent">0%</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-label">Earnings</div>
+            <div class="card-grid-3">
+                <div class="metric-card">
+                    <div class="metric-label">Claimable <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Ready to claim now</span></span></div>
+                    <div class="metric-value green" id="claimableValue">$0.00</div>
+                    <div class="metric-sub">Available</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Claimed <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Already claimed</span></span></div>
+                    <div class="metric-value" id="claimedValue">$0.00</div>
+                    <div class="metric-sub">All time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Earnings <span class="tooltip-wrap"><span class="tooltip-icon">?</span><span class="tooltip-text">Claimable + Claimed</span></span></div>
+                    <div class="metric-value" id="totalEarnings">$0.00</div>
+                    <div class="metric-sub">Lifetime</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="positions-card">
+            <div class="positions-header">
+                <h3>Active Positions</h3>
+            </div>
+            <div id="positionsContainer">
+                <div class="positions-empty">Connect wallet to view positions</div>
+            </div>
+        </div>
+
+        <div class="actions-grid">
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon blue">✦</div>
+                    <h3>Mint TDRT</h3>
+                </div>
+                <p>Mint new tokens when conditions are met.</p>
+                <div class="mint-status">
+                    <div class="status-row">
+                        <div class="status-dot inactive" id="mintIndicator"></div>
+                        <span class="status-text" id="mintStatusText">Checking...</span>
+                    </div>
+                    <div class="status-details">
+                        <div class="status-detail"><span class="label">Market</span><span class="value" id="dexPrice">—</span></div>
+                        <div class="status-detail"><span class="label">7-Day Avg</span><span class="value" id="twapPrice">—</span></div>
+                        <div class="status-detail"><span class="label">Min (105%)</span><span class="value" id="thresholdPrice">—</span></div>
+                        <div class="status-detail"><span class="label">Daily Cap</span><span class="value" id="dailyRemaining">—</span></div>
+                    </div>
+                </div>
+                <div class="warning-box" id="mintWarning" style="display:none;">
+                    ⚠️ Contract mint is temporarily unavailable due to price calculation issue. Please buy on Uniswap instead.
+                </div>
+                <div class="input-wrap">
+                    <input type="number" id="mintAmount" placeholder="0.00" step="0.01">
+                    <span class="suffix">TDRT</span>
+                </div>
+                <div class="info-row"><span class="label">Cost</span><span class="value" id="mintCost">0.00 USDC</span></div>
+                <button class="btn btn-primary" id="mintBtn" onclick="mintTDRT()" disabled>Mint TDRT</button>
+            </div>
+
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon gray">↓</div>
+                    <h3>Redeem TDRT</h3>
+                </div>
+                <p>Convert back to USDC at $0.95 anytime.</p>
+                <div class="input-wrap">
+                    <input type="number" id="burnAmount" placeholder="0.00" step="0.01">
+                    <span class="suffix">TDRT</span>
+                </div>
+                <div class="info-row"><span class="label">You Receive</span><span class="value" id="burnReceive">0.00 USDC</span></div>
+                <div class="info-row"><span class="label">Rate</span><span class="value">$0.95/TDRT</span></div>
+                <button class="btn btn-primary" id="burnBtn" onclick="burnTDRT()" disabled>Redeem TDRT</button>
+            </div>
+
+            <div class="action-card">
+                <div class="action-header">
+                    <div class="action-icon green">◆</div>
+                    <h3>Claim Payout</h3>
+                </div>
+                <p>Collect when BTC drops 5%+ from entry.</p>
+                <div class="claim-display">
+                    <div class="claim-label">Claimable Now</div>
+                    <div class="claim-value" id="claimAmount">$0.00</div>
+                </div>
+                <div class="claim-note">See positions for details</div>
+                <button class="btn btn-green" id="claimBtn" onclick="claimPayout()" disabled>Claim Payout</button>
+            </div>
+        </div>
+
+        <div class="reserves-box">
+            <div class="reserves-header">
+                <div class="reserves-icon">🔒</div>
+                <div>
+                    <div class="reserves-title">Protocol Reserves</div>
+                    <div class="reserves-subtitle">100% backed · Fully transparent · On-chain</div>
+                </div>
+            </div>
+            <div class="reserves-grid">
+                <div class="reserve-item">
+                    <div class="reserve-value" id="seniorVault">$0.00</div>
+                    <div class="reserve-label-row">
+                        <span class="reserve-label">Senior Vault</span>
+                        <span class="reserve-tip">?<span class="reserve-tip-text">Backs redemptions & payouts</span></span>
+                    </div>
+                    <div class="reserve-tag">≥$0.95/TDRT</div>
+                    <a href="https://basescan.org/address/0x356fdc4369c752d566c3046941af477A05aD8274" class="reserve-link" id="seniorLink" target="_blank">View on Basescan ↗</a>
+                </div>
+                <div class="reserve-item">
+                    <div class="reserve-value" id="juniorVault">$0.00</div>
+                    <div class="reserve-label-row">
+                        <span class="reserve-label">Junior Vault</span>
+                        <span class="reserve-tip">?<span class="reserve-tip-text">Safety buffer for Senior</span></span>
+                    </div>
+                    <div class="reserve-tag">≥$0.05/TDRT</div>
+                    <a href="https://basescan.org/address/0x66B69E02Ca6FB8173Bc4C08955d8F8c82AE0783F" class="reserve-link" id="juniorLink" target="_blank">View on Basescan ↗</a>
+                </div>
+                <div class="reserve-item">
+                    <div class="reserve-value" id="totalSupply">0</div>
+                    <div class="reserve-label-row">
+                        <span class="reserve-label">Total Supply</span>
+                    </div>
+                    <div class="reserve-tag">TDRT</div>
+                    <a href="https://basescan.org/token/0x601F382DF787fe54815214B6c46739D1b94E1aC5" class="reserve-link" id="tokenLink" target="_blank">View Token ↗</a>
+                </div>
+            </div>
+            <div class="reserves-footer">
+                <span><span class="check">✓</span>On-chain</span>
+                <span><span class="check">✓</span>No admin keys</span>
+                <span><span class="check">✓</span>Immutable</span>
+            </div>
+        </div>
+
+        <section class="how-section" id="how-it-works">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Simple, transparent, fully trustless</p>
+            </div>
+            <div class="how-grid">
+                <div class="how-card">
+                    <div class="how-step">1</div>
+                    <h3>Earn When BTC Drops</h3>
+                    <p>Buy TDRT and earn when Bitcoin drops 5%+ from your entry.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step">2</div>
+                    <h3>Maximize Earnings</h3>
+                    <p>Payout based on lowest BTC. Rebounds don't reduce it.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step">3</div>
+                    <h3>Get More TDRT</h3>
+                    <p>Buy on Uniswap or mint from protocol when available.</p>
+                </div>
+                <div class="how-card">
+                    <div class="how-step">4</div>
+                    <h3>Exit Anytime</h3>
+                    <p>Redeem at $0.95 or sell on exchange. No lockups.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="trust-box">
+            <div class="trust-header">
+                <span class="trust-icon">🏦</span>
+                <div>
+                    <h4>Two-Vault Architecture</h4>
+                    <p>Every TDRT backed by on-chain reserves</p>
+                </div>
+            </div>
+            <div class="trust-vaults">
+                <div class="trust-vault">
+                    <h5>Senior Vault (≥$0.95/TDRT)</h5>
+                    <p>Reserved for redemptions and claim payouts. Topped up from Junior when needed.</p>
+                </div>
+                <div class="trust-vault">
+                    <h5>Junior Vault (≥$0.05/TDRT)</h5>
+                    <p>Safety buffer supporting Senior. Funded from excess reserves.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://basescan.org/address/0x601F382DF787fe54815214B6c46739D1b94E1aC5" id="contractLink" target="_blank">Smart Contract</a>
+            <a href="https://app.uniswap.org/explore/pools/base/0x28B0CA48277C1b322B78E2aaE22EE6ddD63372Cf" target="_blank">Uniswap Pool</a>
+            <a href="#how-it-works">Docs</a>
+        </div>
+        <p>TDRT Protocol — Trustless Bitcoin Volatility Infrastructure</p>
+    </footer>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================
+        // CONTRACT ADDRESSES (Base Mainnet)
+        // ============================================
+        const CONTRACTS = {
+            TDRT: "0x601F382DF787fe54815214B6c46739D1b94E1aC5",
+            SENIOR: "0x356fdc4369c752d566c3046941af477A05aD8274",
+            JUNIOR: "0x66B69E02Ca6FB8173Bc4C08955d8F8c82AE0783F",
+            USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            POOL: "0x28B0CA48277C1b322B78E2aaE22EE6ddD63372Cf"
+        };
+
+        // ============================================
+        // ABIs
+        // ============================================
+        const TDRT_ABI = [
+            "function balanceOf(address) view returns (uint256)",
+            "function totalSupply() view returns (uint256)",
+            "function getBtcPrice() view returns (uint256)",
+            "function getUserLots(address) view returns (tuple(uint256 amount, uint256 anchorPrice, uint256 lowestPrice, uint256 timestamp)[])",
+            "function checkClaimStatus(address) view returns (uint256, uint256, uint256)",
+            "function checkMintConditions() view returns (bool, uint256, uint256, uint256, uint256)",
+            "function mint(uint256 drtAmount)",
+            "function burn(uint256 drtAmount)",
+            "function claim()",
+            "function updateLowestPrice()",
+            "function bootstrapPrice() view returns (uint256)",
+            "function dailyMintAmount(uint256) view returns (uint256)",
+            "function MAX_DAILY_MINT_BPS() view returns (uint256)"
+        ];
+
+        const POOL_ABI = [
+            "function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)",
+            "function token0() view returns (address)",
+            "function token1() view returns (address)"
+        ];
+
+        const VAULT_ABI = ["function balance() view returns (uint256)"];
+        const ERC20_ABI = [
+            "function approve(address, uint256) returns (bool)", 
+            "function allowance(address, address) view returns (uint256)",
+            "function balanceOf(address) view returns (uint256)"
+        ];
+
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        let provider, signer, userAddress;
+        let tdrtContract, seniorContract, juniorContract, usdcContract, poolContract;
+        let currentMarketPrice = 1.00;
+        let userLots = []; // Store lots for cost basis calculation
+
+        // ============================================
+        // PRICE FUNCTIONS
+        // ============================================
+        async function getUniswapPrice() {
+            try {
+                if (!poolContract) {
+                    poolContract = new ethers.Contract(CONTRACTS.POOL, POOL_ABI, provider);
+                }
+                
+                const [sqrtPriceX96] = await poolContract.slot0();
+                const token0 = await poolContract.token0();
+                
+                // Calculate price from sqrtPriceX96
+                // sqrtPriceX96 = sqrt(price) * 2^96
+                // price = (sqrtPriceX96 / 2^96)^2
+                const sqrtPriceBN = ethers.BigNumber.from(sqrtPriceX96);
+                const Q96 = ethers.BigNumber.from(2).pow(96);
+                
+                // Use BigNumber math for precision
+                // price = sqrtPriceX96^2 / 2^192
+                const sqrtPriceSquared = sqrtPriceBN.mul(sqrtPriceBN);
+                const Q192 = Q96.mul(Q96);
+                
+                // Check if TDRT is token0 or token1
+                const tdrtIsToken0 = token0.toLowerCase() === CONTRACTS.TDRT.toLowerCase();
+                
+                let price;
+                if (tdrtIsToken0) {
+                    // Price is token1/token0 = USDC/TDRT
+                    // Need to adjust for decimals: USDC(6) vs TDRT(18)
+                    // Real price = raw_price * 10^(18-6) = raw_price * 10^12
+                    const rawPrice = sqrtPriceSquared.mul(ethers.BigNumber.from(10).pow(12)).div(Q192);
+                    price = Number(rawPrice) / 1e6; // Convert to dollars
+                } else {
+                    // Price is token0/token1 = USDC/TDRT inverted = TDRT/USDC
+                    // Need to invert: USDC per TDRT = 1 / (TDRT per USDC)
+                    // And adjust decimals
+                    const rawPrice = Q192.mul(ethers.BigNumber.from(10).pow(6)).div(sqrtPriceSquared);
+                    price = Number(rawPrice) / 1e18;
+                }
+                
+                console.log('Uniswap price calculated:', price);
+                return price > 0 ? price : 1.00;
+            } catch (e) {
+                console.error('Error getting Uniswap price:', e);
+                return 1.00;
+            }
+        }
+
+        // ============================================
+        // WALLET CONNECTION
+        // ============================================
+        async function connectWallet() {
+            const ethereum = window.ethereum;
+            if (!ethereum) { 
+                showToast('Please install a Web3 wallet (MetaMask, Coinbase, etc.)', 'error'); 
+                return; 
+            }
+            
+            try {
+                provider = new ethers.providers.Web3Provider(ethereum, "any");
+                await provider.send("eth_requestAccounts", []);
+                
+                const network = await provider.getNetwork();
+                
+                // Switch to Base mainnet if needed
+                if (network.chainId !== 8453) {
+                    try {
+                        await ethereum.request({ 
+                            method: 'wallet_switchEthereumChain', 
+                            params: [{ chainId: '0x2105' }] 
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x2105',
+                                    chainName: 'Base',
+                                    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                                    rpcUrls: ['https://mainnet.base.org'],
+                                    blockExplorerUrls: ['https://basescan.org']
+                                }]
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                    provider = new ethers.providers.Web3Provider(ethereum, "any");
+                }
+                
+                signer = provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                // Update UI
+                document.getElementById('connectBtn').textContent = userAddress.slice(0,6) + '...' + userAddress.slice(-4);
+                document.getElementById('connectBtn').classList.add('connected');
+                
+                // Initialize contracts
+                tdrtContract = new ethers.Contract(CONTRACTS.TDRT, TDRT_ABI, signer);
+                seniorContract = new ethers.Contract(CONTRACTS.SENIOR, VAULT_ABI, provider);
+                juniorContract = new ethers.Contract(CONTRACTS.JUNIOR, VAULT_ABI, provider);
+                usdcContract = new ethers.Contract(CONTRACTS.USDC, ERC20_ABI, signer);
+                poolContract = new ethers.Contract(CONTRACTS.POOL, POOL_ABI, provider);
+                
+                await refreshData();
+                showToast('Connected to Base', 'success');
+            } catch (e) { 
+                console.error('Connection error:', e);
+                showToast(e.message || 'Connection failed', 'error'); 
+            }
+        }
+
+        // ============================================
+        // DATA REFRESH
+        // ============================================
+        async function refreshData() {
+            if (!tdrtContract) return;
+            
+            try {
+                // Get BTC price
+                const btcPrice = await tdrtContract.getBtcPrice();
+                const currentBtc = Number(ethers.utils.formatUnits(btcPrice, 8));
+                document.getElementById('btcPrice').textContent = '$' + currentBtc.toLocaleString(undefined, {maximumFractionDigits: 0});
+
+                // Get user balance
+                const bal = await tdrtContract.balanceOf(userAddress);
+                const balNum = Number(ethers.utils.formatEther(bal));
+                document.getElementById('balanceValue').textContent = balNum.toFixed(2);
+
+                // Get total supply
+                const supply = await tdrtContract.totalSupply();
+                const supplyNum = Number(ethers.utils.formatEther(supply));
+                document.getElementById('totalSupply').textContent = supplyNum.toFixed(0);
+
+                // Get claimable
+                const claimData = await tdrtContract.checkClaimStatus(userAddress);
+                const claimableAmount = Number(claimData[0]) / 1e6;
+                document.getElementById('claimableValue').textContent = '$' + claimableAmount.toFixed(2);
+                document.getElementById('claimAmount').textContent = '$' + claimableAmount.toFixed(2);
+
+                // Enable/disable buttons
+                document.getElementById('burnBtn').disabled = bal.eq(0);
+                document.getElementById('claimBtn').disabled = claimData[0].eq(0);
+
+                // Load all data
+                await checkMintStatus(supplyNum);
+                await loadUserLots(); // Load lots first for cost basis
+                await loadUserStats(claimableAmount, balNum);
+                await loadVaultData();
+                await loadPositions(currentBtc);
+                
+            } catch (e) { 
+                console.error('Refresh error:', e); 
+            }
+        }
+
+        // ============================================
+        // MINT STATUS CHECK
+        // ============================================
+        async function checkMintStatus(totalSupply) {
+            try {
+                // Get price directly from Uniswap
+                const uniswapPrice = await getUniswapPrice();
+                currentMarketPrice = uniswapPrice > 0 ? uniswapPrice : 1.00;
+                window.currentDexPrice = currentMarketPrice;
+                
+                // Update price displays
+                document.getElementById('drtMarketPrice').textContent = '$' + currentMarketPrice.toFixed(2);
+                document.getElementById('dexPrice').textContent = '$' + currentMarketPrice.toFixed(4);
+                
+                // Get TWAP and other data from contract
+                const c = await tdrtContract.checkMintConditions();
+                const contractAllowed = c[0];
+                const contractDexPrice = Number(c[1]) / 1e6;
+                const twap = Number(c[2]) / 1e6;
+                const threshold = Number(c[3]) / 1e6;
+                const remainingDaily = Number(ethers.utils.formatEther(c[4]));
+                
+                document.getElementById('twapPrice').textContent = '$' + twap.toFixed(4);
+                document.getElementById('thresholdPrice').textContent = '$' + threshold.toFixed(4);
+                document.getElementById('dailyRemaining').textContent = remainingDaily.toFixed(2) + ' TDRT';
+                
+                const dot = document.getElementById('mintIndicator');
+                const text = document.getElementById('mintStatusText');
+                const warning = document.getElementById('mintWarning');
+                
+                // Check conditions using real Uniswap price
+                const priceAboveBootstrap = currentMarketPrice > 1.00;
+                const priceAboveThreshold = currentMarketPrice > threshold;
+                const hasRemainingCap = remainingDaily > 0;
+                
+                // Show warning if price is good but contract thinks it's not
+                if (priceAboveBootstrap && priceAboveThreshold && !contractAllowed) {
+                    warning.style.display = 'block';
+                    dot.classList.add('inactive'); 
+                    dot.classList.remove('active');
+                    text.textContent = 'Contract Issue';
+                    document.getElementById('mintBtn').disabled = true;
+                } else if (priceAboveBootstrap && priceAboveThreshold && hasRemainingCap) {
+                    warning.style.display = 'none';
+                    dot.classList.add('active'); 
+                    dot.classList.remove('inactive');
+                    text.textContent = 'Available';
+                    document.getElementById('mintBtn').disabled = false;
+                } else {
+                    warning.style.display = 'none';
+                    dot.classList.add('inactive'); 
+                    dot.classList.remove('active');
+                    if (!priceAboveBootstrap) {
+                        text.textContent = 'Below $1.00';
+                    } else if (!priceAboveThreshold) {
+                        text.textContent = 'Below 105% TWAP';
+                    } else if (!hasRemainingCap) {
+                        text.textContent = 'Daily Cap Reached';
+                    } else {
+                        text.textContent = 'Unavailable';
+                    }
+                    document.getElementById('mintBtn').disabled = true;
+                }
+            } catch (e) {
+                console.error('checkMintStatus error:', e);
+                document.getElementById('mintStatusText').textContent = 'Error';
+            }
+        }
+
+        // ============================================
+        // LOAD USER LOTS (for cost basis calculation)
+        // ============================================
+        async function loadUserLots() {
+            try {
+                const lots = await tdrtContract.getUserLots(userAddress);
+                userLots = lots.filter(lot => {
+                    const amt = Number(ethers.utils.formatEther(lot.amount));
+                    return amt > 0.001; // Filter out near-zero lots
+                });
+            } catch (e) {
+                console.error('Error loading lots:', e);
+                userLots = [];
+            }
+        }
+
+        // ============================================
+        // USER STATS (with proper cost basis)
+        // ============================================
+        async function loadUserStats(claimableAmount, balNum) {
+            try {
+                // Calculate current value
+                const currentValue = balNum * currentMarketPrice;
+                document.getElementById('portfolioValue').textContent = '$' + currentValue.toFixed(2);
+
+                // Calculate average cost basis from lots
+                // Since TDRT contract doesn't store purchase price, we estimate:
+                // - Bootstrap mints were at $1.00
+                // - Market buys were at various prices
+                // For now, we'll use $1.00 as baseline (bootstrap price)
+                // In a real scenario, you'd track purchase prices off-chain or in contract
+                
+                let totalCost = 0;
+                let totalAmount = 0;
+                
+                // Estimate cost basis - lots created at bootstrap price $1.00
+                // For market purchases, we don't have the data, so use $1.00 as estimate
+                userLots.forEach(lot => {
+                    const amt = Number(ethers.utils.formatEther(lot.amount));
+                    totalAmount += amt;
+                    totalCost += amt * 1.00; // Bootstrap/base price
+                });
+                
+                // If user has balance but no lots (bought on Uniswap), estimate at current price
+                if (balNum > totalAmount) {
+                    const untracked = balNum - totalAmount;
+                    totalCost += untracked * currentMarketPrice; // Assume bought at current price
+                    totalAmount = balNum;
+                }
+                
+                const avgCost = totalAmount > 0 ? totalCost / totalAmount : 0;
+                document.getElementById('costBasis').textContent = avgCost > 0 ? '$' + avgCost.toFixed(2) : '$0.00';
+
+                // Calculate P&L
+                const pnl = currentValue - totalCost;
+                const pnlPercent = totalCost > 0 ? (pnl / totalCost * 100) : 0;
+                
+                const pnlEl = document.getElementById('pnlValue');
+                pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+                pnlEl.className = 'metric-value ' + (pnl >= 0 ? 'green' : 'red');
+                document.getElementById('pnlPercent').textContent = (pnl >= 0 ? '+' : '') + pnlPercent.toFixed(1) + '%';
+
+                // Earnings
+                document.getElementById('claimedValue').textContent = '$0.00'; // Would need to track this
+                document.getElementById('totalEarnings').textContent = '$' + claimableAmount.toFixed(2);
+            } catch (e) { 
+                console.error('loadUserStats error:', e); 
+            }
+        }
+
+        // ============================================
+        // VAULT DATA
+        // ============================================
+        async function loadVaultData() {
+            try {
+                const seniorBal = await seniorContract.balance();
+                const juniorBal = await juniorContract.balance();
+                document.getElementById('seniorVault').textContent = '$' + (Number(seniorBal) / 1e6).toFixed(2);
+                document.getElementById('juniorVault').textContent = '$' + (Number(juniorBal) / 1e6).toFixed(2);
+            } catch (e) { 
+                console.error('loadVaultData error:', e); 
+            }
+        }
+
+        // ============================================
+        // POSITIONS TABLE (filter out 0 amounts)
+        // ============================================
+        async function loadPositions(currentBtc) {
+            try {
+                const container = document.getElementById('positionsContainer');
+                
+                if (userLots.length === 0) {
+                    container.innerHTML = '<div class="positions-empty">No positions yet</div>';
+                    return;
+                }
+
+                // Get claimable data
+                const claimData = await tdrtContract.checkClaimStatus(userAddress);
+                const totalClaimable = Number(claimData[0]) / 1e6;
+                const totalAmount = userLots.reduce((sum, l) => sum + Number(ethers.utils.formatEther(l.amount)), 0);
+
+                let html = `<table class="positions-table"><thead><tr>
+                    <th>Opened</th><th>Amount</th><th>Entry BTC</th><th>Claim Below</th><th>Tracked Low</th><th>Claimable</th>
+                </tr></thead><tbody>`;
+
+                userLots.forEach((lot) => {
+                    const amt = Number(ethers.utils.formatEther(lot.amount));
+                    const anchor = Number(ethers.utils.formatUnits(lot.anchorPrice, 8));
+                    const storedLowest = Number(ethers.utils.formatUnits(lot.lowestPrice, 8));
+                    const lowest = Math.min(storedLowest, currentBtc);
+                    const date = new Date(Number(lot.timestamp) * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    // Calculate this lot's share of claimable
+                    const lotClaimable = totalAmount > 0 ? (totalClaimable * amt / totalAmount) : 0;
+                    const claimThreshold = anchor * 0.95;
+
+                    html += `<tr>
+                        <td class="muted">${date}</td>
+                        <td class="bold">${amt.toFixed(2)} TDRT</td>
+                        <td>$${anchor.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td>$${claimThreshold.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td>$${lowest.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td class="green">$${lotClaimable.toFixed(2)}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (e) { 
+                console.error('loadPositions error:', e); 
+            }
+        }
+
+        // ============================================
+        // MINT FUNCTION
+        // ============================================
+        async function mintTDRT() {
+            const amt = document.getElementById('mintAmount').value;
+            if (!amt || parseFloat(amt) <= 0) {
+                showToast('Enter amount to mint', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('mintBtn');
+            btn.innerHTML = '<span class="spinner"></span>';
+            btn.disabled = true;
+            
+            try {
+                // Calculate cost at current DEX price
+                const cost = ethers.utils.parseUnits((parseFloat(amt) * currentMarketPrice).toFixed(6), 6);
+                
+                // Check allowance
+                const allow = await usdcContract.allowance(userAddress, CONTRACTS.TDRT);
+                if (allow.lt(cost)) {
+                    showToast('Approving USDC...', 'success');
+                    await (await usdcContract.approve(CONTRACTS.TDRT, ethers.constants.MaxUint256)).wait();
+                }
+                
+                // Mint
+                showToast('Minting...', 'success');
+                await (await tdrtContract.mint(ethers.utils.parseEther(amt))).wait();
+                
+                showToast('Minted ' + amt + ' TDRT!', 'success');
+                document.getElementById('mintAmount').value = '';
+                setTimeout(refreshData, 2000);
+            } catch (e) { 
+                console.error('Mint error:', e);
+                const reason = e.reason || e.message || 'Mint failed';
+                showToast(reason, 'error'); 
+            }
+            
+            btn.innerHTML = 'Mint TDRT';
+            btn.disabled = false;
+            await checkMintStatus();
+        }
+
+        // ============================================
+        // BURN/REDEEM FUNCTION
+        // ============================================
+        async function burnTDRT() {
+            const amt = document.getElementById('burnAmount').value;
+            if (!amt || parseFloat(amt) <= 0) {
+                showToast('Enter amount to redeem', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('burnBtn');
+            btn.innerHTML = '<span class="spinner"></span>';
+            btn.disabled = true;
+            
+            try {
+                await (await tdrtContract.burn(ethers.utils.parseEther(amt))).wait();
+                const received = (parseFloat(amt) * 0.95).toFixed(2);
+                showToast('Redeemed ' + amt + ' TDRT for $' + received + ' USDC', 'success');
+                document.getElementById('burnAmount').value = '';
+                setTimeout(refreshData, 2000);
+            } catch (e) { 
+                console.error('Burn error:', e);
+                showToast(e.reason || e.message || 'Redeem failed', 'error'); 
+            }
+            
+            btn.innerHTML = 'Redeem TDRT';
+            btn.disabled = false;
+        }
+
+        // ============================================
+        // CLAIM FUNCTION
+        // ============================================
+        async function claimPayout() {
+            const btn = document.getElementById('claimBtn');
+            btn.innerHTML = '<span class="spinner"></span>';
+            btn.disabled = true;
+            
+            try {
+                // First update lowest price
+                showToast('Updating price...', 'success');
+                await (await tdrtContract.updateLowestPrice()).wait();
+                
+                // Then claim
+                showToast('Claiming payout...', 'success');
+                await (await tdrtContract.claim()).wait();
+                
+                showToast('Payout claimed!', 'success');
+                setTimeout(refreshData, 2000);
+            } catch (e) { 
+                console.error('Claim error:', e);
+                showToast(e.reason || e.message || 'Claim failed', 'error'); 
+            }
+            
+            btn.innerHTML = 'Claim Payout';
+            btn.disabled = false;
+        }
+
+        // ============================================
+        // INPUT HANDLERS
+        // ============================================
+        document.getElementById('mintAmount').addEventListener('input', e => {
+            const amt = parseFloat(e.target.value) || 0;
+            const cost = (amt * currentMarketPrice).toFixed(2);
+            document.getElementById('mintCost').textContent = cost + ' USDC';
+        });
+        
+        document.getElementById('burnAmount').addEventListener('input', e => {
+            const amt = parseFloat(e.target.value) || 0;
+            const receive = (amt * 0.95).toFixed(2);
+            document.getElementById('burnReceive').textContent = receive + ' USDC';
+        });
+
+        // ============================================
+        // TOAST NOTIFICATIONS
+        // ============================================
+        function showToast(msg, type = 'success') {
+            const t = document.createElement('div');
+            t.className = 'toast ' + type;
+            t.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span><span>${msg}</span>`;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        }
+
+        // ============================================
+        // AUTO-CONNECT & EVENT LISTENERS
+        // ============================================
+        window.addEventListener('load', async () => {
+            if (window.ethereum) {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    connectWallet();
+                }
+            }
+        });
+
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', accounts => {
+                if (accounts.length > 0) {
+                    connectWallet();
+                } else {
+                    location.reload();
+                }
+            });
+            window.ethereum.on('chainChanged', () => location.reload());
+        }
+    </script>
+</body>
+</html>
